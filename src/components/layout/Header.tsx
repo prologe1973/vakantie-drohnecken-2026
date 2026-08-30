@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Home, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
+import { Home,
+  Compass,
+  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
 
-export type TabId = 'overzicht' | 'verblijf' | 'dagen' | 'kaarten' | 'wandelen' | 'reisverslag' | 'praktisch';
+export type TabId = 'overzicht' | 'verblijf' | 'culinair' | 'weetjes' | 'dagen' | 'kaarten' | 'wandelen' | 'reisverslag' | 'praktisch';
 
 interface HeaderProps {
   activeTab: TabId;
@@ -14,6 +16,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
   const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'overzicht', label: 'Overzicht', icon: <Home className="w-4 h-4" /> },
     { id: 'verblijf', label: 'Verblijf', icon: <Building2 className="w-4 h-4" /> },
+    { id: 'culinair', label: 'Culinair', icon: <Utensils className="w-4 h-4" /> },
+    { id: 'weetjes', label: 'Weetjes & Info', icon: <Compass className="w-4 h-4" /> },
     { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-4 h-4" /> },
     { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-4 h-4" /> },
     { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-4 h-4" /> },

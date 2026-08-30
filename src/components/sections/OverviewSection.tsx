@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { TabId } from '../layout/Header';
 import { ACCOMMODATION } from '@/data/travelData';
-import { ExternalLink, Star, MapPin } from 'lucide-react';
+import { ExternalLink, Star, MapPin, Camera } from 'lucide-react';
 
 interface OverviewSectionProps {
   onNavigate: (tab: TabId) => void;
@@ -125,12 +125,22 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ onNavigate }) 
               Bekijk Alle Verblijf Details &rarr;
             </button>
             <a
+              href={ACCOMMODATION.photosUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-wine hover:bg-wine-light text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-colors shadow-sm"
+            >
+              <Camera className="w-3.5 h-3.5 text-gold" />
+              <span>Bekijk Foto's</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
               href={ACCOMMODATION.bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-[#003580] hover:bg-[#00224f] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-[#003580] hover:bg-[#00224f] text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-colors shadow-sm"
             >
-              <span>Booking.com Pagina</span>
+              <span>Booking.com</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>

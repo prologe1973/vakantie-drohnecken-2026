@@ -11,6 +11,8 @@ import { MapSection } from '@/components/sections/MapSection';
 import { HikingSection } from '@/components/sections/HikingSection';
 import { JournalSection } from '@/components/sections/JournalSection';
 import { PracticalSection } from '@/components/sections/PracticalSection';
+import { CulinarySection } from '@/components/sections/CulinarySection';
+import { AttractionsInfoSection } from '@/components/sections/AttractionsInfoSection';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabId>('overzicht');
@@ -37,8 +39,14 @@ export default function HomePage() {
         {activeTab === 'overzicht' && (
           <OverviewSection onNavigate={handleSelectTab} />
         )}
+        {activeTab === 'culinair' && (
+          <CulinarySection />
+        )}
+        {activeTab === 'weetjes' && (
+          <AttractionsInfoSection onSelectMapLocation={handleSelectMapLocation} />
+        )}
         {activeTab === 'verblijf' && (
-          <AccommodationSection onNavigateToMap={handleSelectMapLocation} />
+          <AccommodationSection onNavigateToMap={handleSelectMapLocation} onNavigateTab={handleSelectTab} />
         )}
         {activeTab === 'dagen' && (
           <DaysSection onSelectMapLocation={handleSelectMapLocation} />

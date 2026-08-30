@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Home, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
+import { Home,
+  Compass,
+  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
 import { TabId } from './Header';
 
 interface BottomNavProps {
@@ -13,6 +15,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
   const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'overzicht', label: 'Overzicht', icon: <Home className="w-4 h-4" /> },
     { id: 'verblijf', label: 'Verblijf', icon: <Building2 className="w-4 h-4" /> },
+    { id: 'culinair', label: 'Culinair', icon: <Utensils className="w-4 h-4" /> },
+    { id: 'weetjes', label: 'Weetjes', icon: <Compass className="w-4 h-4" /> },
     { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-4 h-4" /> },
     { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-4 h-4" /> },
     { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-4 h-4" /> },
