@@ -20,7 +20,23 @@ import {
   X,
   Camera,
   BookOpen,
+  Images,
+  FolderOpen,
+  ChevronLeft,
+  Loader2,
 } from 'lucide-react';
+
+interface ImmichAlbum {
+  id: string;
+  albumName: string;
+  assetCount: number;
+  albumThumbnailAssetId: string | null;
+}
+
+interface ImmichAsset {
+  id: string;
+  type: string;
+}
 
 export const JournalSection: React.FC = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -36,6 +52,16 @@ export const JournalSection: React.FC = () => {
   const [text, setText] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isCompressing, setIsCompressing] = useState(false);
+
+  // Immich picker state
+  const [immichOpen, setImmichOpen] = useState(false);
+  const [immichAlbums, setImmichAlbums] = useState<ImmichAlbum[]>([]);
+  const [immichLoading, setImmichLoading] = useState(false);
+  const [immichError, setImmichError] = useState('');
+  const [activeAlbum, setActiveAlbum] = useState<ImmichAlbum | null>(null);
+  const [immichAssets, setImmichAssets] = useState<ImmichAsset[]>([]);
+  const [selectedImmich, setSelectedImmich] = useState<Set<string>>(new Set());
+  const [immichAdding, setImmichAdding] = useState(false);
 
   // Lightbox State
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
@@ -132,6 +158,109 @@ export const JournalSection: React.FC = () => {
 
   const handleRemovePhoto = (idx: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // ============ Immich picker ============
+  const openImmichPicker = async () => {
+    setImmichOpen(true);
+    setImmichError('');
+    setActiveAlbum(null);
+    setSelectedImmich(new Set());
+    setImmichAssets([]);
+    setImmichLoading(true);
+    try {
+      const res = await fetch('/api/immich/albums');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const albums = (Array.isArray(data) ? data : data?.albums || [])
+        .map((a: any) => ({
+          id: a.id,
+          albumName: a.albumName || 'Album',
+          assetCount: a.assetCount || 0,
+          albumThumbnailAssetId: a.albumThumbnailAssetId || null,
+        }))
+        .sort((a: ImmichAlbum, b: ImmichAlbum) =>
+          (a.albumName || '').localeCompare(b.albumName || '')
+        );
+      setImmichAlbums(albums);
+    } catch (e: any) {
+      setImmichError(e?.message || 'Kon Immich-albums niet laden.');
+    } finally {
+      setImmichLoading(false);
+    }
+  };
+
+  const openAlbum = async (album: ImmichAlbum) => {
+    setActiveAlbum(album);
+    setSelectedImmich(new Set());
+    setImmichLoading(true);
+    setImmichError('');
+    try {
+      const res = await fetch(`/api/immich/albums/${album.id}/assets`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setImmichAssets(
+        (Array.isArray(data) ? data : []).filter((a: any) => a.type === 'IMAGE')
+      );
+    } catch (e: any) {
+      setImmichError(e?.message || 'Kon albumfoto\'s niet laden.');
+      setImmichAssets([]);
+    } finally {
+      setImmichLoading(false);
+    }
+  };
+
+  const toggleAsset = (id: string) => {
+    setSelectedImmich((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Haalt de geselecteerde Immich-foto's op en voegt ze toe als data-URL (zoals eigen uploads)
+  const addSelectedImmich = async () => {
+    const ids = Array.from(selectedImmich);
+    if (ids.length === 0) return;
+    setImmichAdding(true);
+    try {
+      const added: string[] = [];
+      for (const id of ids) {
+        const res = await fetch(`/api/immich/thumbnail/${id}?size=preview`);
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        added.push(dataUrl);
+      }
+      setPhotos((prev) => [...prev, ...added]);
+      setImmichOpen(false);
+      setSelectedImmich(new Set());
+      setActiveAlbum(null);
+      if (added.length < ids.length) {
+        alert(`Toegevoegd: ${added.length} van ${ids.length} foto's.`);
+      }
+    } catch (e: any) {
+      alert('Er ging iets mis bij het ophalen van de Immich-foto\'s.');
+    } finally {
+      setImmichAdding(false);
+    }
+  };
+
+  const closeImmichPicker = () => {
+    if (immichAdding) return;
+    setImmichOpen(false);
+    setActiveAlbum(null);
+    setSelectedImmich(new Set());
+    setImmichError('');
   };
 
   // Save entry
@@ -525,6 +654,16 @@ export const JournalSection: React.FC = () => {
                   </p>
                 )}
 
+                {/* Uit Immich knop */}
+                <button
+                  type="button"
+                  onClick={openImmichPicker}
+                  className="mt-2 w-full flex items-center justify-center gap-2 bg-wine hover:bg-wine/90 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                >
+                  <Images className="w-4 h-4" />
+                  <span>Uit Immich kiezen…</span>
+                </button>
+
                 {/* Previews */}
                 {photos.length > 0 && (
                   <div className="grid grid-cols-4 gap-2 mt-3">
@@ -564,6 +703,142 @@ export const JournalSection: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          IMMICH PICKER OVERLAY
+          ========================================================================= */}
+      {immichOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fadeIn">
+            <div className="p-4 bg-wine text-white flex items-center justify-between">
+              <h3 className="text-lg font-bold font-serif flex items-center gap-2">
+                <Images className="w-5 h-5" />
+                {activeAlbum ? activeAlbum.albumName : 'Immich-albums'}
+              </h3>
+              <button
+                onClick={closeImmichPicker}
+                className="text-white/80 hover:text-white"
+                disabled={immichAdding}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1">
+              {immichError && (
+                <div className="mb-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                  {immichError}
+                </div>
+              )}
+
+              {/* Terug-knop */}
+              {activeAlbum && (
+                <button
+                  onClick={() => setActiveAlbum(null)}
+                  className="mb-3 flex items-center gap-1 text-xs font-semibold text-muted hover:text-forest"
+                  disabled={immichAdding}
+                >
+                  <ChevronLeft className="w-4 h-4" /> Terug naar albums
+                </button>
+              )}
+
+              {immichLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted">
+                  <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                  <span className="text-xs">Foto's laden…</span>
+                </div>
+              ) : activeAlbum ? (
+                <>
+                  {immichAssets.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-muted">
+                      Geen foto's in dit album.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {immichAssets.map((a) => (
+                        <div
+                          key={a.id}
+                          onClick={() => toggleAsset(a.id)}
+                          className={`relative h-20 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+                            selectedImmich.has(a.id)
+                              ? 'border-wine ring-2 ring-wine/40'
+                              : 'border-transparent hover:border-line'
+                          }`}
+                        >
+                          <img
+                            src={`/api/immich/thumbnail/${a.id}?size=thumbnail`}
+                            alt="Immich foto"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          {selectedImmich.has(a.id) && (
+                            <div className="absolute top-1 right-1 bg-wine text-white rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {immichAlbums.length === 0 && !immichLoading ? (
+                    <div className="col-span-2 text-center py-10 text-xs text-muted">
+                      Geen albums gevonden in Immich.
+                    </div>
+                  ) : (
+                    immichAlbums.map((album) => (
+                      <button
+                        key={album.id}
+                        onClick={() => openAlbum(album)}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-line hover:border-gold hover:bg-cream/30 text-left transition-colors"
+                      >
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-cream flex-shrink-0">
+                          {album.albumThumbnailAssetId ? (
+                            <img
+                              src={`/api/immich/thumbnail/${album.albumThumbnailAssetId}?size=thumbnail`}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <FolderOpen className="w-6 h-6 text-muted m-auto" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-forest truncate">
+                            {album.albumName}
+                          </p>
+                          <p className="text-[11px] text-muted">
+                            {album.assetCount} foto's
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {activeAlbum && (
+              <div className="p-4 border-t border-line flex items-center justify-between bg-cream/30">
+                <span className="text-xs text-muted">
+                  {selectedImmich.size} geselecteerd
+                </span>
+                <button
+                  onClick={addSelectedImmich}
+                  disabled={selectedImmich.size === 0 || immichAdding}
+                  className="flex items-center gap-2 bg-forest hover:bg-forest2 text-white text-xs font-semibold px-4 py-2.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {immichAdding && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{immichAdding ? 'Toevoegen…' : 'Foto\'s toevoegen'}</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
