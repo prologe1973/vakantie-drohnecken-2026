@@ -1,8 +1,8 @@
 # Stage 1: Base image with dependencies
 FROM node:20-alpine AS base
 
-# Install libc6-compat for alpine compatibility if needed
-RUN apk add --no-cache libc6-compat
+# Install libc6-compat + libstdc++/libgcc voor better-sqlite3 (native) op alpine
+RUN apk add --no-cache libc6-compat libstdc++ libgcc
 WORKDIR /app
 
 # Stage 2: Install all dependencies
