@@ -7,7 +7,7 @@ services:
     container_name: vakantie-drohnecken-2026
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "8081:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
