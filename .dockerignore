@@ -1,0 +1,7 @@
+# Negeer git- en editorspullen in de Docker-buildcontext
+.git
+.gitignore
+README.md
+node_modules
+npm-debug.log
+*.md

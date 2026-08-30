@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17331f">
+<title>Rijnland-Pfalts 2026 · Vakantiegids Hunsrück &amp; Moezel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --forest:#17331f; --forest2:#1f452a; --wine:#7a2431; --gold:#c9a24b;
+  --cream:#f7f2e7; --card:#ffffff; --ink:#24312a; --muted:#67756c; --line:#e6dfce;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.55}
+h1,h2,h3,.display{font-family:'Cormorant Garamond',serif;font-weight:600}
+img{display:block;max-width:100%}
+a{color:var(--wine);text-decoration:none}
+
+/* top app bar */
+.topbar{position:sticky;top:0;z-index:50;background:var(--forest);color:#fff;padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.topbar .title{font-size:20px;letter-spacing:.5px}
+.topbar .sub{font-size:11px;opacity:.85;letter-spacing:1px;text-transform:uppercase}
+.topbar .d{font-size:12px;background:var(--gold);color:#1d281f;font-weight:700;padding:4px 10px;border-radius:20px}
+
+/* bottom nav */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:6px 0 calc(8px + env(safe-area-inset-bottom));}
+.bottomnav button{flex:1;background:none;border:none;color:var(--muted);font-size:10px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer}
+.bottomnav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bottomnav button.on{color:var(--wine)}
+.bottomnav button.on .dot{width:4px;height:4px;background:var(--wine);border-radius:50%}
+
+main{padding-bottom:74px}
+.page{display:none;animation:fade .25s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* hero */
+.hero{position:relative;height:64vh;min-height:340px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),transparent 30%,rgba(23,51,31,.82))}
+.hero .cap{position:absolute;left:18px;right:18px;bottom:70px;color:#fff}
+.hero .cap .k{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700}
+.hero .cap h1{font-size:44px;line-height:1;margin:4px 0 6px;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.hero .cap p{font-size:14px;opacity:.95;max-width:520px}
+
+.wrap{padding:20px 18px 30px}
+.section{margin-top:26px}
+.sec-title{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--wine);font-weight:700;margin-bottom:4px}
+.sec-head{font-size:30px;color:var(--forest);margin-bottom:6px}
+.lead{color:var(--muted);font-size:14.5px;margin-bottom:14px}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:22px;color:var(--forest);font-family:'Cormorant Garamond',serif}
+.stat span{font-size:11px;color:var(--muted)}
+
+/* cards grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.gcard{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);cursor:pointer}
+.gcard img{height:120px;width:100%;object-fit:cover}
+.gcard .gc-body{padding:10px 12px}
+.gcard .gc-body b{font-size:14px;color:var(--forest);display:block}
+.gcard .gc-body span{font-size:11.5px;color:var(--muted)}
+.gcard .pin{position:absolute;top:8px;right:8px;background:var(--wine);color:#fff;border-radius:20px;
+  padding:3px 9px;font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:3px}
+
+/* day cards */
+.day{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 6px 20px rgba(0,0,0,.07)}
+.day .dimg{position:relative;height:170px}
+.day .dimg img{width:100%;height:100%;object-fit:cover}
+.day .dimg .dnum{position:absolute;left:14px;top:14px;background:var(--forest);color:#fff;border-radius:12px;
+  padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.5px}
+.day .dimg .dlabel{position:absolute;left:0;right:0;bottom:0;padding:24px 16px 12px;color:#fff;
+  background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.day .dimg .dlabel h3{font-size:26px;line-height:1.05}
+.day .dimg .dlabel p{font-size:12px;opacity:.9}
+.day .dbody{padding:16px}
+.day .item{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.day .item:last-child{border-bottom:none}
+.day .item .t{flex:0 0 62px;font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;padding-top:2px}
+.day .item .c{flex:1}
+.day .item .c b{font-size:15px;color:var(--forest)}
+.day .item .c p{font-size:13px;color:var(--ink);margin-top:2px}
+.day .item .c ul{margin:6px 0 0 16px;font-size:13px}
+.tip{background:#fff6e0;border-left:4px solid var(--gold);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px}
+.chiprow{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.chip{background:var(--forest);color:#fff;border:none;border-radius:20px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer}
+.chip.map{background:var(--wine)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:14px;overflow:hidden}
+th{background:var(--forest);color:#fff;text-align:left;padding:10px 12px;font-size:12px;letter-spacing:.3px}
+td{padding:9px 12px;border-top:1px solid var(--line)}
+tr:nth-child(even) td{background:#faf6eb}
+td b{color:var(--forest)}
+
+/* map page */
+.locsel{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+.locsel button{flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px 14px;
+  font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap}
+.locsel button.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.mapcard{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.07)}
+#map{height:360px;width:100%}
+.mhead{padding:14px 16px 6px;display:flex;justify-content:space-between;align-items:flex-start}
+.mhead h3{font-size:20px;color:var(--forest)}
+.mhead .mdesc{font-size:12px;color:var(--muted)}
+.parklist{padding:8px 16px 16px}
+.parklist h4{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:8px 0 4px}
+.park{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--line);font-size:13px}
+.park .p-badge{flex:0 0 26px;height:26px;background:var(--blue,#1d5fa8);color:#fff;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.park .p-info{flex:1}
+.park .p-info b{color:var(--ink)}
+.park .p-info span{display:block;font-size:11.5px;color:var(--muted)}
+.park a{background:var(--forest);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap}
+.legend{display:flex;gap:16px;padding:6px 16px 12px;font-size:11.5px;color:var(--muted)}
+.legend .dot-p{width:12px;height:12px;background:#1d5fa8;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:5px}
+.legend .dot-r{width:12px;height:12px;background:var(--wine);border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:5px}
+
+/* hiking */
+.trail{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.trail h3{font-size:21px;color:var(--forest)}
+.trail .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tag{font-size:11px;font-weight:700;background:var(--cream);border:1px solid var(--line);color:var(--forest);border-radius:20px;padding:3px 9px}
+.trail p{font-size:13.5px;color:var(--ink);margin-bottom:6px}
+.trail .foot{font-size:12.5px;color:var(--wine);font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--wine);color:#fff;border:none;border-radius:10px;
+  padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:8px}
+.btn.ghost{background:#fff;color:var(--forest);border:1px solid var(--line)}
+
+/* packing */
+.pack-group{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.pack-group h4{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--wine);margin-bottom:8px}
+label.check{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:13.5px;cursor:pointer;border-top:1px solid var(--line)}
+label.check:first-of-type{border-top:none}
+label.check input{margin-top:3px;width:17px;height:17px;accent-color:var(--forest)}
+label.check.done{color:var(--muted);text-decoration:line-through}
+
+.note{background:#eef3ee;border-left:4px solid var(--forest);border-radius:10px;padding:11px 13px;font-size:13px;margin-top:12px}
+.note b{color:var(--forest)}
+.divider{border:none;border-top:1px solid var(--line);margin:20px 0}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px 16px 6px}
+.pill{display:inline-block;background:var(--gold);color:#201a0e;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;margin:2px 2px 0 0}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div>
+    <div class="title">Rijnland-Pfalts 2026</div>
+    <div class="sub">Hunsrück &amp; Moezel · Dhronecken</div>
+  </div>
+  <div class="d">7–11 SEP</div>
+</div>
+
+<main>
+<!-- ============ OVERZICHT ============ -->
+<section class="page active" id="pg-overzicht">
+  <div class="hero">
+    <img src="img/hero_hunsrueck.jpg" alt="Hunsrück">
+    <div class="shade"></div>
+    <div class="cap">
+      <div class="k">Vakantiegids</div>
+      <h1>Hunsrück &amp; de Moezel</h1>
+      <p>4 dagen wandelen, wijn proeven en Romeinse geschiedenis — met uitvalsbasis Dhronecken.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>816 m</b><span>Erbeskopf</span></div>
+      <div class="stat"><b>360 m</b><span>Geierlay-brug</span></div>
+      <div class="stat"><b>2.000 jr</b><span>Trier</span></div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Het programma</div>
+      <div class="grid">
+        <div class="gcard" data-nav="pg-dagen"><img src="img/bernkastel.jpg" alt="Bernkastel"><div class="pin">📍 Wijnfeest</div><div class="gc-body"><b>Ma 7 sep</b><span>Aankomst &amp; Weinfest Bernkastel</span></div></div>
+        <div class="gcard" data-nav="pg-dagen"><img src="img/trier.jpg" alt="Trier"><div class="pin">🏛️ Romeins</div><div class="gc-body"><b>Di 8 sep</b><span>Porta Nigra &amp; Trier</span></div></div>
+        <div class="gcard" data-nav="pg-dagen"><img src="img/idar.jpg" alt="Idar-Oberstein"><div class="pin">💎 Edelstenen</div><div class="gc-body"><b>Wo 9 sep</b><span>Felsenkirche &amp; Herrstein</span></div></div>
+        <div class="gcard" data-nav="pg-dagen"><img src="img/erbeskopf.jpg" alt="Erbeskopf"><div class="pin">🥾 Panorama</div><div class="gc-body"><b>Do 10 sep</b><span>Erbeskopf &amp; Geierlay</span></div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">In het kort</div>
+      <div class="sec-head">Een reis van uitersten</div>
+      <p class="lead">Van de ruige, stille bossen van de Hunsrück naar de monumentale Romeinse pracht van Trier en de wijntradities van de Moezel. Alles op korte rijafstand van je verblijf in <b>Falkennest, Dhronecken</b>.</p>
+      <div class="note"><b>ARGO-app:</b> download vooraf! Bij <b>Burg Dhronecken</b> zie je via augmented reality de 13e-eeuwse burcht in 360° over de huidige ruïnes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DAGEN ============ -->
+<section class="page" id="pg-dagen">
+  <div class="wrap">
+    <div class="sec-title">Dag per dag</div>
+    <div class="sec-head">Het reisschema</div>
+    <p class="lead">Tap op een locatie-chip om de plattegrond met parkeerplaatsen te openen.</p>
+
+    <!-- Dag 1 -->
+    <div class="day">
+      <div class="dimg"><img src="img/dhronecken.jpg" alt="Burg Dhronecken"><div class="dnum">DAG 1 · MA 7 SEP</div><div class="dlabel"><h3>Aankomst &amp; Wijnfeest</h3><p>Burg Dhronecken · Hölzbachklamm · Bernkastel-Kues</p></div></div>
+      <div class="dbody">
+        <div class="item"><div class="t">Ochtend</div><div class="c"><b>Burg Dhronecken &amp; Hölzbachklamm</b><p>Verken de 13e-eeuwse burchtruïne (gebouwd door de Wildgrafen). Gebruik de <b>ARGO-app</b> voor de 360°-herbouw en beklim de hoektoren voor panorama over de Kleine Dhron. Direct achter het kasteel start de mystieke kloofwandeling.</p></div></div>
+        <div class="item"><div class="t">13:00</div><div class="c"><b>Lunch: rustieke herberg (Thalfang)</b><p>Ongedwongen Hunsrück-kost: vers geplukte paddenstoelen of een broodplank met lokale ham.</p></div></div>
+        <div class="item"><div class="t">Middag</div><div class="c"><b>Weinfest der Mittelmosel — Bernkastel-Kues</b><p>Slotavond (3–7 sep) van dit iconische feest, met vuurwerk op de Moezel, wijnkoninginnen en livemuziek tussen de vakwerkhuizen.</p><ul><li><b>Flammkuchen</b> — krokant, heet uit de oven</li><li><b>Wildzwijn-specialiteiten</b> — gegrild</li><li><b>Riesling</b> — van de steile hellingen</li></ul></div></div>
+        <div class="tip">💶 Neem <b>contant geld</b> mee: wijnkraampjes en kleine horeca pinnen niet altijd.</div>
+        <div class="chiprow">
+          <button class="chip map" data-loc="Dhronecken">🗺️ Burg &amp; Hölzbachklamm</button>
+          <button class="chip map" data-loc="Bernkastel">🗺️ Bernkastel-Kues</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dag 2 -->
+    <div class="day">
+      <div class="dimg"><img src="img/trier.jpg" alt="Trier"><div class="dnum">DAG 2 · DI 8 SEP</div><div class="dlabel"><h3>Romeins Trier</h3><p>De oudste stad van Duitsland</p></div></div>
+      <div class="dbody">
+        <div class="item"><div class="t">Ochtend</div><div class="c"><b>Koffie bij een legende</b><p>Strijk neer bij <b>Coffee Fellows</b> in het Dreikönigenhaus (ca. 1200). De voordeur zit op de <b>tweede verdieping</b> — in de middeleeuwen trok men de ladder op om overvallers buiten te houden.</p></div></div>
+        <div class="item"><div class="t">Lunch</div><div class="c"><b>Hauptmarkt — terras van de Steipe</b><p>Het mooiste plein van Duitsland, met de Petrusbrunnen. Na de lunch richting de Dom en raak de <b>Domstein</b> aan, een stuk van de Romeinse basilica.</p></div></div>
+        <div class="item"><div class="t">Middag</div><div class="c"><b>Wijn- &amp; cultuurexcursies</b><p>Zie onderstaande tabel voor toegangsprijzen.</p></div></div>
+        <table>
+          <tr><th>Activiteit</th><th>Toegang</th></tr>
+          <tr><td>Oudste wijnkelder (2000 jr)</td><td>€16 rondleiding</td></tr>
+          <tr><td>Porta Nigra</td><td>ca. €4</td></tr>
+          <tr><td>Kaisersthermen</td><td>ca. €4</td></tr>
+          <tr><td>Panoramavaart Moezel</td><td>ca. €12–15</td></tr>
+        </table>
+        <div class="item" style="margin-top:12px"><div class="t">Diner</div><div class="c"><b>Romantik Hotel Zur Glocke</b><p>Verfijnd, 2 min van de Hauptmarkt. <b>Reserveer vooraf!</b> Gouden tip: ontbijt in de kapel van Boutiquehotel Kloster Pfalzel.</p></div></div>
+        <div class="tip">🪙 Neem <b>50-centmuntjes</b> mee voor de glasvloer (4e-eeuwse resten) in de Liebfrauenkirche.</div>
+        <div class="chiprow"><button class="chip map" data-loc="Trier">🗺️ Trier centrum</button></div>
+      </div>
+    </div>
+
+    <!-- Dag 3 -->
+    <div class="day">
+      <div class="dimg"><img src="img/idar.jpg" alt="Felsenkirche"><div class="dnum">DAG 3 · WO 9 SEP</div><div class="dlabel"><h3>Edelstenen &amp; Vakwerk</h3><p>Idar-Oberstein · Herrstein</p></div></div>
+      <div class="dbody">
+        <div class="item"><div class="t">Lunch</div><div class="c"><b>Marktplatz Oberstein</b><p>Spectaculair uitzicht op de <b>Felsenkirche</b>, tussen 1482 en 1484 in de rotswand uitgehakt. Beklim de 234 treden naar het altaar.</p></div></div>
+        <div class="item"><div class="t">Middag</div><div class="c"><b>Steinkaulenberg &amp; Herrstein</b><p>De enige publiek toegankelijke edelsteenmijn van Europa. Daarna een tijdreis van 300–500 jaar door <b>Herrstein</b>: Schinderhannestoren en gerestaureerde vakwerkhuizen. Tijd voor <b>Kaffee und Kuchen</b>.</p></div></div>
+        <div class="item"><div class="t">Diner</div><div class="c"><b>Rustieke herberg (Herrstein of Erbeskopf)</b><p>Wild uit de omringende bossen. <b>Reserveer vooraf</b> — populaire plekken zitten vol.</p></div></div>
+        <div class="chiprow">
+          <button class="chip map" data-loc="Idar">🗺️ Idar-Oberstein</button>
+          <button class="chip map" data-loc="Herrstein">🗺️ Herrstein</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dag 4 -->
+    <div class="day">
+      <div class="dimg"><img src="img/erbeskopf.jpg" alt="Erbeskopf"><div class="dnum">DAG 4 · DO 10 SEP</div><div class="dlabel"><h3>Toppen &amp; Hangbrug</h3><p>Erbeskopf · Geierlay</p></div></div>
+      <div class="dbody">
+        <div class="item"><div class="t">Ochtend</div><div class="c"><b>Erbeskopf (816 m)</b><p>Hoogste top van Rijnland-Pfalts. Bij de <b>Windklang</b>-sculptuur speelt de wind als een harp. Bezoek de interactieve tentoonstelling 'Welkom in het oerbos van morgen'.</p></div></div>
+        <div class="item"><div class="t">Lunch</div><div class="c"><b>Scenario A of B</b><p><b>A:</b> panoramische picknick bij de Windklang, zicht tot Frankrijk. <b>B:</b> biergarten bij het vrijetijdscentrum + adrenaline op de <b>zomerrodelbaan (1.345 m)</b>.</p></div></div>
+        <div class="item"><div class="t">Middag</div><div class="c"><b>Geierlay-hangbrug (Mörsdorf)</b><p>360 m lang, 100 m boven het dal. <b>Optie A:</b> rechtstreeks heen-en-terug. <b>Optie B (aanrader):</b> Geierlayschleife, ±6 km rondwandeling die ónder de brug door gaat.</p></div></div>
+        <div class="item"><div class="t">Diner</div><div class="c"><b>Winzer-restaurant in Mörsdorf</b><p>De perfecte afsluiter: de balans tussen Hunsrück en Moezel.</p></div></div>
+        <div class="tip">🅿️ Parkeren Geierlay: gebruik <b>P1 (bezoekerscentrum)</b> — kortste wandeling van 1,7 km naar de brug. Betalen via pin of mobiel.</div>
+        <div class="chiprow">
+          <button class="chip map" data-loc="Erbeskopf">🗺️ Erbeskopf</button>
+          <button class="chip map" data-loc="Geierlay">🗺️ Geierlay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KAARTEN ============ -->
+<section class="page" id="pg-kaarten">
+  <div class="wrap">
+    <div class="sec-title">Plattegronden</div>
+    <div class="sec-head">Locaties &amp; parkeren</div>
+    <p class="lead">Blauwe <b>P</b> = parkeerplaats. Rode pin = de bezienswaardigheid. Navigeer direct vanuit de app.</p>
+    <div class="locsel" id="locsel"></div>
+    <div class="mapcard">
+      <div class="mhead"><div><h3 id="loc-title">Burg Dhronecken</h3><div class="mdesc" id="loc-desc">13e-eeuwse burchtruïne</div></div></div>
+      <div id="map"></div>
+      <div class="legend"><span><span class="dot-r"></span>Bezienswaardigheid</span><span><span class="dot-p"></span>Parkeerplaats</span></div>
+      <div class="parklist" id="parklist"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WANDELEN ============ -->
+<section class="page" id="pg-wandelen">
+  <div class="wrap">
+    <div class="sec-title">Wandelpaspoorten</div>
+    <div class="sec-head">De mooiste routes</div>
+    <p class="lead">Navigeer met de Komoot-app. Download de routes vooraf, dan werken ze offline.</p>
+
+    <div class="trail">
+      <h3>Hölzbachklamm</h3>
+      <div class="tags"><span class="tag">Avontuurlijk</span><span class="tag">Mystiek</span><span class="tag">Vanuit Dhronecken</span></div>
+      <p>Kloofwandeling direct achter Burg Dhronecken. Fototip: laag standpunt bij de kabbelende beekjes voor dynamiek.</p>
+      <p class="foot">📷 Statief essentieel voor long-exposure van het water.</p>
+      <a class="btn ghost" target="_blank" href="https://www.komoot.com/highlight/147024">Komoot — Hölzbachklamm ↗</a>
+    </div>
+
+    <div class="trail">
+      <h3>Traumschleife 'Gipfelrauschen'</h3>
+      <div class="tags"><span class="tag">Panorama</span><span class="tag">Educatief</span><span class="tag">Erbeskopf 816 m</span></div>
+      <p>Panoramawandeling over de hoogste top. Fototip: panorama vanaf het houten platform van de Windklang bij zonsondergang.</p>
+      <a class="btn ghost" target="_blank" href="https://www.komoot.com/highlight/646440">Komoot — Erbeskopf ↗</a>
+    </div>
+
+    <div class="trail">
+      <h3>Geierlayschleife (loop)</h3>
+      <div class="tags"><span class="tag">Spectaculair</span><span class="tag">±6 km</span><span class="tag">Onder de brug</span></div>
+      <p>Rondwandeling die onder de 100 m hoge brug door voert. Fototip: groothoek vanaf het begin van de brug om de diepte te accentueren.</p>
+      <a class="btn ghost" target="_blank" href="https://www.komoot.com/discover/Geierlay_Suspension_Bridge/@50.1044430,7.3408330/tours?max_distance=2000">Komoot — Geierlay rondwandeling ↗</a>
+    </div>
+
+    <div class="trail">
+      <h3>Extra opties</h3>
+      <p><b>Hunolstein</b> — kasteelruïne met weids uitzicht.</p>
+      <a class="btn ghost" target="_blank" href="https://www.komoot.com/highlight/288556">Komoot — Hunolstein ↗</a>
+      <p style="margin-top:10px"><b>Züscher Hammer</b> — historische ijzersmelterij met groot waterrad.</p>
+      <a class="btn ghost" target="_blank" href="https://www.komoot.com/highlight/219232">Komoot — Züscher Hammer ↗</a>
+    </div>
+
+    <div class="note"><b>Gouden uurtjes:</b> 1) Hölzbachklamm vroeg in de ochtend (mist + zon door bladerdak) · 2) Windklang vlak voor zonsondergang · 3) Trier Hauptmarkt bij avondverlichting.</div>
+  </div>
+</section>
+
+<!-- ============ PRAKTISCH ============ -->
+<section class="page" id="pg-praktisch">
+  <div class="wrap">
+    <div class="sec-title">Voorbereiding</div>
+    <div class="sec-head">Inpaklijst &amp; info</div>
+    <p class="lead">Vink af wat je inpakt — de app onthoudt dit op je toestel.</p>
+
+    <div class="pack-group">
+      <h4>📄 Documenten &amp; financiën</h4>
+      <label class="check"><input type="checkbox"> Identiteitskaart (check-in Falkennest)</label>
+      <label class="check"><input type="checkbox"> Boekingsbevestigingen (check-in 15:00–18:00)</label>
+      <label class="check"><input type="checkbox"> Zorgpas / EHIC</label>
+      <label class="check"><input type="checkbox"> Contant geld (wijnkraampjes Bernkastel)</label>
+      <label class="check"><input type="checkbox"> 50-centmuntjes (Liebfrauenkirche)</label>
+    </div>
+    <div class="pack-group">
+      <h4>👕 Kleding &amp; schoeisel</h4>
+      <label class="check"><input type="checkbox"> Stevige wandelschoenen met diep profiel (Hölzbachklamm)</label>
+      <label class="check"><input type="checkbox"> Ademende basislaag &amp; fleece (vroege Erbeskopf-uren)</label>
+      <label class="check"><input type="checkbox"> Water- en winddichte jas (Geierlay!)</label>
+      <label class="check"><input type="checkbox"> Comfortabele stadsschoenen (kasseien Trier)</label>
+      <label class="check"><input type="checkbox"> Casual kleding voor diner &amp; proeverij</label>
+    </div>
+    <div class="pack-group">
+      <h4>🥾 Wandel- &amp; outdoor</h4>
+      <label class="check"><input type="checkbox"> Dagrugzak 20–30 L</label>
+      <label class="check"><input type="checkbox"> Herbruikbare waterfles</label>
+      <label class="check"><input type="checkbox"> Zonnebrandcrème (hoogvlakte UV is sterk)</label>
+      <label class="check"><input type="checkbox"> Wandelstokken (Erbeskopf-klim)</label>
+      <label class="check"><input type="checkbox"> Tekenpen</label>
+    </div>
+    <div class="pack-group">
+      <h4>📷 Foto &amp; elektronica</h4>
+      <label class="check"><input type="checkbox"> Groothoeklens (Erbeskopf, Geierlay)</label>
+      <label class="check"><input type="checkbox"> Zoomlens (Porta Nigra, Moezel-panorama)</label>
+      <label class="check"><input type="checkbox"> Statief (Hölzbachklamm long exposure)</label>
+      <label class="check"><input type="checkbox"> Lenspen &amp; microvezeldoek</label>
+      <label class="check"><input type="checkbox"> Extra batterijen</label>
+      <label class="check"><input type="checkbox"> Reserve geheugenkaarten</label>
+      <label class="check"><input type="checkbox"> Powerbank (ARGO + Komoot slurpen stroom)</label>
+    </div>
+    <div class="pack-group">
+      <h4>💊 Gezondheid &amp; digitaal</h4>
+      <label class="check"><input type="checkbox"> Blarenpleisters (onmisbaar!)</label>
+      <label class="check"><input type="checkbox"> Persoonlijke medicatie (4 dagen)</label>
+      <label class="check"><input type="checkbox"> EHBO-basis (ontsmettingsmiddel, pleisters)</label>
+      <label class="check"><input type="checkbox"> ARGO-app geïnstalleerd</label>
+      <label class="check"><input type="checkbox"> Komoot-routes offline gedownload</label>
+    </div>
+
+    <hr class="divider">
+    <div class="sec-title">Afstanden</div>
+    <div class="sec-head">Vanuit Dhronecken</div>
+    <table style="margin-top:10px">
+      <tr><th>Bestemming</th><th>Afstand</th><th>Auto</th></tr>
+      <tr><td>Erbeskopf</td><td>±8 km</td><td>10 min</td></tr>
+      <tr><td>Bernkastel-Kues</td><td>±25 km</td><td>25 min</td></tr>
+      <tr><td>Trier (centrum)</td><td>34 km</td><td>35 min</td></tr>
+      <tr><td>Herrstein</td><td>±30 km</td><td>30 min</td></tr>
+      <tr><td>Idar-Oberstein</td><td>±35 km</td><td>35 min</td></tr>
+      <tr><td>Geierlay (Mörsdorf)</td><td>±55 km</td><td>50 min</td></tr>
+    </table>
+    <div class="note">De <b>B327 (Hunsrückhöhenstraße)</b> is je panoramische levensader: hij verbindt de ruige hoogvlaktes met de wijnranken van de Moezel.</div>
+  </div>
+</section>
+
+<div class="footer">Vakantiegids Rijnland-Pfalts 2026 · 7–11 september · Dhronecken<br>Kaarten © OpenStreetMap · Foto's gegenereerd</div>
+</main>
+
+<!-- Bottom nav -->
+<div class="bottomnav">
+  <button class="on" data-nav="pg-overzicht"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Overzicht<span class="dot"></span></button>
+  <button data-nav="pg-dagen"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Dagen<span class="dot"></span></button>
+  <button data-nav="pg-kaarten"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Kaarten<span class="dot"></span></button>
+  <button data-nav="pg-wandelen"><svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="M13 6v5l4 3 1 5M10 11l-3 4 2 4"/></svg>Wandelen<span class="dot"></span></button>
+  <button data-nav="pg-praktisch"><svg viewBox="0 0 24 24"><path d="M12 3a5 5 0 0 1 5 5c0 1.5-.5 2.5-1 3.5l.5 2a1.5 1.5 0 0 1-3 .5l-.5-1.5a1 1 0 0 0-2 0l-.5 1.5a1.5 1.5 0 0 1-3-.5l.5-2C7.5 10.5 7 9.5 7 8a5 5 0 0 1 5-5z"/></svg>Praktisch<span class="dot"></span></button>
+</div>
+
+<script>
+/* ============ Navigatie ============ */
+var pages=['pg-overzicht','pg-dagen','pg-kaarten','pg-wandelen','pg-praktisch'];
+function nav(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.bottomnav button').forEach(function(b){b.classList.toggle('on',b.dataset.nav===id)});
+  window.scrollTo({top:0});
+  setTimeout(function(){ if(map) map.invalidateSize(); },60);
+}
+document.querySelectorAll('.bottomnav button,[data-nav]').forEach(function(b){
+  b.addEventListener('click',function(){nav(b.dataset.nav)});
+});
+/* Chip-knoppen in dagkaarten: spring naar kaarten-tab en selecteer locatie */
+document.querySelectorAll('.chip.map').forEach(function(b){
+  b.addEventListener('click',function(){
+    nav('pg-kaarten');
+    selectLoc(b.dataset.loc);
+  });
+});
+
+/* ============ Kaartdata ============ */
+var LOCATIONS={
+  Dhronecken:{title:'Burg Dhronecken & Hölzbachklamm',desc:'13e-eeuwse burchtruïne + kloofwandeling',
+    center:[49.7260,6.9835],zoom:15,
+    poi:{name:'Burg Dhronecken',lat:49.7260,lon:6.9840},
+    parks:[
+      {name:'Wanderparkplatz Hölzbachklamm',lat:49.7249,lon:6.9825,note:'Start kloofwandeling'},
+      {name:'Parkeren dorp / Burg',lat:49.7263,lon:6.9828,note:'Centraal in Dhronecken'}
+    ]},
+  Bernkastel:{title:'Bernkastel-Kues — Weinfest',desc:'Marktplatz & Moezel-oever',
+    center:[49.9160,7.0770],zoom:15,
+    poi:{name:'Marktplatz (Weinfest)',lat:49.9159,lon:7.0763},
+    parks:[
+      {name:'Parkplatz an der Mosel',lat:49.9185,lon:7.0765,note:'Aan de rivier, kort lopen'},
+      {name:'P Bernkastel (centrum)',lat:49.9151,lon:7.0780,note:'Dichtst bij de markt'}
+    ]},
+  Trier:{title:'Trier — Porta Nigra & Hauptmarkt',desc:'Romeinse stad, oudste van Duitsland',
+    center:[49.7580,6.6430],zoom:15,
+    poi:{name:'Porta Nigra',lat:49.7596,lon:6.6439},
+    parks:[
+      {name:'P Viehmarkt / centrum',lat:49.7550,lon:6.6400,note:'Parkeergarage nabij Hauptmarkt'},
+      {name:'P Treviris / Porta Nigra',lat:49.7605,lon:6.6445,note:'Dichtst bij de poort'}
+    ]},
+  Idar:{title:'Idar-Oberstein — Felsenkirche',desc:'Rotskerk in de klif',
+    center:[49.7035,7.3260],zoom:15,
+    poi:{name:'Felsenkirche',lat:49.7033,lon:7.3257},
+    parks:[
+      {name:'P Zentrum / Stadttheater',lat:49.7038,lon:7.3275,note:'Parkeergarage bij de markt'},
+      {name:'P Marktplatz Oberstein',lat:49.7030,lon:7.3268,note:'Dichtst bij de 234 treden'}
+    ]},
+  Herrstein:{title:'Herrstein — vakwerkstad',desc:'Middeleeuwse tijdreis',
+    center:[49.7797,7.3380],zoom:16,
+    poi:{name:'Historischer Ortskern',lat:49.7797,lon:7.3380},
+    parks:[
+      {name:'Parkplatz Ortsmitte',lat:49.7804,lon:7.3385,note:'Aan de rand van de oude kern'}
+    ]},
+  Erbeskopf:{title:'Erbeskopf (816 m)',desc:'Hoogste top van Rijnland-Pfalts',
+    center:[49.7330,7.0860],zoom:15,
+    poi:{name:'Windklang-sculptuur',lat:49.7304,lon:7.0906},
+    parks:[
+      {name:'Wanderparkplatz Erbeskopf',lat:49.7372,lon:7.0821,note:'Startpunt Gipfelrauschen & rodelbaan'}
+    ]},
+  Geierlay:{title:'Geierlay-hangbrug',desc:'360 m lang, 100 m hoog',
+    center:[50.1044,7.3540],zoom:15,
+    poi:{name:'Geierlay-hangbrug',lat:50.1035,lon:7.3520},
+    parks:[
+      {name:'P1 Besucherzentrum',lat:50.1041,lon:7.3481,note:'Kortste route (1,7 km) · betaald'},
+      {name:'P2 Windorferstr.',lat:50.1060,lon:7.3400,note:'Reserve'},
+      {name:'P3 Treiser Str.',lat:50.1010,lon:7.3450,note:'Reserve'}
+    ]}
+};
+
+/* ============ Locatie-selector ============ */
+var locsel=document.getElementById('locsel');
+var first=true;
+Object.keys(LOCATIONS).forEach(function(k){
+  var b=document.createElement('button');
+  b.textContent=LOCATIONS[k].title.split(' — ')[0];
+  b.dataset.k=k;
+  if(first){b.classList.add('on');first=false}
+  b.addEventListener('click',function(){selectLoc(k)});
+  locsel.appendChild(b);
+});
+
+/* ============ Leaflet-kaart ============ */
+var map=null, curLoc=null;
+function selectLoc(k){
+  curLoc=k;
+  document.querySelectorAll('#locsel button').forEach(function(x){x.classList.toggle('on',x.dataset.k===k)});
+  var loc=LOCATIONS[k];
+  document.getElementById('loc-title').textContent=loc.title;
+  document.getElementById('loc-desc').textContent=loc.desc;
+  if(!map){
+    map=L.map('map').setView(loc.center,loc.zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  }
+  map.eachLayer(function(l){if(l.options&&l.options.kind)map.removeLayer(l)});
+  // POI
+  L.marker([loc.poi.lat,loc.poi.lon],{kind:'poi',icon:poiIcon()}).addTo(map).bindPopup('<b>'+loc.poi.name+'</b>');
+  // Parkings
+  loc.parks.forEach(function(p){
+    L.marker([p.lat,p.lon],{kind:'park',icon:parkIcon()}).addTo(map).bindPopup('<b>'+p.name+'</b><br><small>'+p.note+'</small>');
+  });
+  // pas bounds aan
+  var pts=loc.parks.map(function(p){return [p.lat,p.lon]});pts.push([loc.poi.lat,loc.poi.lon]);
+  map.fitBounds(pts,{padding:[40,40]});
+  // parkeerlijst
+  var pl=document.getElementById('parklist');
+  pl.innerHTML='<h4>🅿️ Parkeerplaatsen</h4>';
+  loc.parks.forEach(function(p){
+    var d=document.createElement('div');d.className='park';
+    d.innerHTML='<div class="p-badge">P</div><div class="p-info"><b>'+p.name+'</b><span>'+p.note+'</span></div>'+
+      '<a href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'" target="_blank">Navigeer</a>';
+    pl.appendChild(d);
+  });
+}
+function poiIcon(){return L.divIcon({html:'<div style="width:18px;height:18px;background:#7a2431;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>',iconSize:[18,18],iconAnchor:[9,9]})}
+function parkIcon(){return L.divIcon({html:'<div style="width:26px;height:26px;background:#1d5fa8;color:#fff;border:2px solid #fff;border-radius:6px;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)">P</div>',iconSize:[26,26],iconAnchor:[13,13]})}
+
+/* ============ Inpaklijst ============ */
+document.querySelectorAll('label.check input').forEach(function(cb){
+  try{cb.checked=JSON.parse(localStorage.getItem('rp2026_'+cb.closest('.pack-group').querySelector('h4').textContent+'_'+Array.prototype.indexOf.call(cb.parentElement.parentElement.children,cb.parentElement))||'false')}catch(e){}
+  cb.addEventListener('change',function(){
+    cb.parentElement.classList.toggle('done',cb.checked);
+    try{localStorage.setItem('rp2026_'+cb.closest('.pack-group').querySelector('h4').textContent+'_'+Array.prototype.indexOf.call(cb.parentElement.parentElement.children,cb.parentElement),cb.checked)}catch(e){}
+  });
+});
+document.querySelectorAll('label.check').forEach(function(l){l.classList.toggle('done',l.querySelector('input').checked)});
+
+/* ============ Init ============ */
+selectLoc('Dhronecken');
+</script>
+</body>
+</html>

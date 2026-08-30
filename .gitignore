@@ -1,0 +1,19 @@
+# Besturingssysteem bestanden
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE instellingen
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Omgevingsbestanden en logs
+.env
+.env.local
+*.log
+
+# Docker tijdelijke data
+.docker/
