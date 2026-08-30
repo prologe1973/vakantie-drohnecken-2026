@@ -9,6 +9,7 @@ import { AccommodationSection } from '@/components/sections/AccommodationSection
 import { DaysSection } from '@/components/sections/DaysSection';
 import { MapSection } from '@/components/sections/MapSection';
 import { HikingSection } from '@/components/sections/HikingSection';
+import { WeatherSection } from '@/components/sections/WeatherSection';
 import { JournalSection } from '@/components/sections/JournalSection';
 import { PracticalSection } from '@/components/sections/PracticalSection';
 import { CulinarySection } from '@/components/sections/CulinarySection';
@@ -56,6 +57,9 @@ export default function HomePage() {
         )}
         {activeTab === 'wandelen' && (
           <HikingSection />
+        )}
+        {activeTab === 'weer' && (
+          <WeatherSection />
         )}
         {activeTab === 'reisverslag' && (
           <JournalSection />

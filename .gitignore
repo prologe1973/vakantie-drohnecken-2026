@@ -39,3 +39,6 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Lokale SQLite-database (niet in git)
+data/

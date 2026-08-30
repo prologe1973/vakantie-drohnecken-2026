@@ -7,6 +7,8 @@ WORKDIR /app
 
 # Stage 2: Install all dependencies
 FROM base AS deps
+# Build-tools nodig om better-sqlite3 (native module) te compileren op alpine
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json* ./
 RUN npm ci
 
@@ -35,10 +37,16 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Map voor de persistente SQLite-database (gemount als volume)
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
 # Kopieer alleen de benodigde standalone artifacts en public assets
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Databasepad instellen
+ENV DB_PATH=/app/data/journal.db
 
 USER nextjs
 

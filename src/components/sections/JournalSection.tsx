@@ -3,9 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   JournalEntry,
-  getJournalEntries,
-  saveJournalEntry,
-  deleteJournalEntry,
+  getJournalEntries as getLocalEntries,
 } from '@/lib/journalDb';
 import { compressImage } from '@/lib/imageCompression';
 import {
@@ -60,8 +58,11 @@ export const JournalSection: React.FC = () => {
   const [immichError, setImmichError] = useState('');
   const [activeAlbum, setActiveAlbum] = useState<ImmichAlbum | null>(null);
   const [immichAssets, setImmichAssets] = useState<ImmichAsset[]>([]);
+  const [viewMode, setViewMode] = useState<'albums' | 'vacation'>('albums');
   const [selectedImmich, setSelectedImmich] = useState<Set<string>>(new Set());
   const [immichAdding, setImmichAdding] = useState(false);
+  const [vacationAssets, setVacationAssets] = useState<ImmichAsset[]>([]);
+  const [vacationLoading, setVacationLoading] = useState(false);
 
   // Lightbox State
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
@@ -70,29 +71,36 @@ export const JournalSection: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  // Load entries from IndexedDB
+  // Laad verslagen uit de database (SQLite). Als de database leeg is
+  // maar er wél lokale (IndexedDB) data staat, wordt die eenmalig gemigreerd.
   const refreshEntries = async () => {
     try {
-      const items = await getJournalEntries();
+      const res = await fetch('/api/journal');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let items: JournalEntry[] = await res.json();
+
       if (items.length === 0) {
-        // Welcome entry
-        const welcome: JournalEntry = {
-          id: 'entry_welcome',
-          title: 'Welkom in Falkennest, Dhronecken!',
-          day: 'Dag 1',
-          date: '2026-09-07T14:30',
-          location: 'Dhronecken',
-          text: 'Aankomst bij Falkennest. De koffers zijn uitgepakt en we maken ons klaar voor de kloofwandeling en het Weinfest in Bernkastel-Kues vanavond!',
-          photos: [],
-          updatedAt: new Date().toISOString(),
-        };
-        await saveJournalEntry(welcome);
-        setEntries([welcome]);
-      } else {
-        setEntries(items);
+        // Check of er lokale data is om te migreren
+        let local: JournalEntry[] = [];
+        try {
+          local = await getLocalEntries();
+        } catch (e) {
+          // geen IndexedDB (bv. privacy-modus) — negeren
+        }
+        // Verwijder de oude automatische welkomst-mockdata bij migratie
+        const meaningful = local.filter((e) => e.id !== 'entry_welcome');
+        if (meaningful.length > 0) {
+          await fetch('/api/journal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(meaningful),
+          });
+          items = meaningful;
+        }
       }
+      setEntries(items);
     } catch (e) {
-      console.error('Failed to load journal entries from IndexedDB', e);
+      console.error('Failed to load journal entries from database', e);
     }
   };
 
@@ -165,6 +173,7 @@ export const JournalSection: React.FC = () => {
     setImmichOpen(true);
     setImmichError('');
     setActiveAlbum(null);
+    setViewMode('albums');
     setSelectedImmich(new Set());
     setImmichAssets([]);
     setImmichLoading(true);
@@ -222,7 +231,30 @@ export const JournalSection: React.FC = () => {
     });
   };
 
-  // Haalt de geselecteerde Immich-foto's op en voegt ze toe als data-URL (zoals eigen uploads)
+  // Laadt foto's gemaakt in de laatste 7 dagen
+  const loadVacation = async () => {
+    setViewMode('vacation');
+    setActiveAlbum(null);
+    setSelectedImmich(new Set());
+    setImmichError('');
+    setVacationLoading(true);
+    try {
+      const now = new Date();
+      const before = now.toISOString();
+      const after = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(
+        `/api/immich/search?after=${encodeURIComponent(after)}&before=${encodeURIComponent(before)}`
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setVacationAssets(Array.isArray(data) ? data : []);
+    } catch (e: any) {
+      setImmichError(e?.message || 'Kon de foto\'s van de laatste 7 dagen niet laden.');
+      setVacationAssets([]);
+    } finally {
+      setVacationLoading(false);
+    }
+  };
   const addSelectedImmich = async () => {
     const ids = Array.from(selectedImmich);
     if (ids.length === 0) return;
@@ -259,6 +291,7 @@ export const JournalSection: React.FC = () => {
     if (immichAdding) return;
     setImmichOpen(false);
     setActiveAlbum(null);
+    setViewMode('albums');
     setSelectedImmich(new Set());
     setImmichError('');
   };
@@ -283,7 +316,14 @@ export const JournalSection: React.FC = () => {
     };
 
     try {
-      await saveJournalEntry(entryToSave);
+      const method = editingEntry ? 'PUT' : 'POST';
+      const url = editingEntry ? `/api/journal/${entryToSave.id}` : '/api/journal';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entryToSave),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       handleCloseModal();
       await refreshEntries();
     } catch (err) {
@@ -296,7 +336,8 @@ export const JournalSection: React.FC = () => {
   const handleDelete = async (id: string, entryTitle: string) => {
     if (confirm(`Weet je zeker dat je "${entryTitle}" wilt verwijderen?`)) {
       try {
-        await deleteJournalEntry(id);
+        const res = await fetch(`/api/journal/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         await refreshEntries();
       } catch (err) {
         console.error('Failed to delete entry', err);
@@ -333,9 +374,13 @@ export const JournalSection: React.FC = () => {
       try {
         const imported = JSON.parse(evt.target?.result as string);
         if (Array.isArray(imported)) {
-          for (const item of imported) {
-            await saveJournalEntry(item);
-          }
+          // Import vervangt de hele database met de backup
+          const res = await fetch('/api/journal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(imported),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           alert(`Succesvol ${imported.length} reisverslagen geïmporteerd!`);
           await refreshEntries();
         } else {
@@ -716,7 +761,11 @@ export const JournalSection: React.FC = () => {
             <div className="p-4 bg-wine text-white flex items-center justify-between">
               <h3 className="text-lg font-bold font-serif flex items-center gap-2">
                 <Images className="w-5 h-5" />
-                {activeAlbum ? activeAlbum.albumName : 'Immich-albums'}
+                {activeAlbum
+                  ? activeAlbum.albumName
+                  : viewMode === 'vacation'
+                    ? "Foto's van de laatste 7 dagen"
+                    : 'Immich-albums'}
               </h3>
               <button
                 onClick={closeImmichPicker}
@@ -741,11 +790,20 @@ export const JournalSection: React.FC = () => {
                   className="mb-3 flex items-center gap-1 text-xs font-semibold text-muted hover:text-forest"
                   disabled={immichAdding}
                 >
+                  <ChevronLeft className="w-4 h-4" /> Terug
+                </button>
+              )}
+              {viewMode === 'vacation' && (
+                <button
+                  onClick={() => setViewMode('albums')}
+                  className="mb-3 flex items-center gap-1 text-xs font-semibold text-muted hover:text-forest"
+                  disabled={immichAdding}
+                >
                   <ChevronLeft className="w-4 h-4" /> Terug naar albums
                 </button>
               )}
 
-              {immichLoading ? (
+              {immichLoading || vacationLoading ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted">
                   <Loader2 className="w-8 h-8 animate-spin mb-3" />
                   <span className="text-xs">Foto's laden…</span>
@@ -784,47 +842,106 @@ export const JournalSection: React.FC = () => {
                     </div>
                   )}
                 </>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {immichAlbums.length === 0 && !immichLoading ? (
-                    <div className="col-span-2 text-center py-10 text-xs text-muted">
-                      Geen albums gevonden in Immich.
+              ) : viewMode === 'vacation' ? (
+                <>
+                  {vacationAssets.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-muted">
+                      Geen foto's gevonden in de laatste 7 dagen.
                     </div>
                   ) : (
-                    immichAlbums.map((album) => (
-                      <button
-                        key={album.id}
-                        onClick={() => openAlbum(album)}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-line hover:border-gold hover:bg-cream/30 text-left transition-colors"
-                      >
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-cream flex-shrink-0">
-                          {album.albumThumbnailAssetId ? (
-                            <img
-                              src={`/api/immich/thumbnail/${album.albumThumbnailAssetId}?size=thumbnail`}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <FolderOpen className="w-6 h-6 text-muted m-auto" />
+                    <div className="grid grid-cols-3 gap-2">
+                      {vacationAssets.map((a) => (
+                        <div
+                          key={a.id}
+                          onClick={() => toggleAsset(a.id)}
+                          className={`relative h-20 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+                            selectedImmich.has(a.id)
+                              ? 'border-wine ring-2 ring-wine/40'
+                              : 'border-transparent hover:border-line'
+                          }`}
+                        >
+                          <img
+                            src={`/api/immich/thumbnail/${a.id}?size=thumbnail`}
+                            alt="Vakantiefoto"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          {selectedImmich.has(a.id) && (
+                            <div className="absolute top-1 right-1 bg-wine text-white rounded-full w-5 h-5 flex items-center justify-center text-[11px] font-bold">
+                              ✓
+                            </div>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-forest truncate">
-                            {album.albumName}
-                          </p>
-                          <p className="text-[11px] text-muted">
-                            {album.assetCount} foto's
-                          </p>
-                        </div>
-                      </button>
-                    ))
+                      ))}
+                    </div>
                   )}
+                </>
+              ) : (
+                <div className="space-y-4">
+                  {/* Deze vakantie optie */}
+                  <button
+                    onClick={loadVacation}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-gold/60 bg-gold/10 hover:bg-gold/20 text-left transition-colors"
+                  >
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gold/20 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-6 h-6 text-gold" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-forest">
+                        Foto's van de laatste 7 dagen
+                      </p>
+                      <p className="text-[11px] text-muted">
+                        Genomen in de afgelopen 7 dagen (niet per album)
+                      </p>
+                    </div>
+                    <ChevronLeft className="w-4 h-4 ml-auto rotate-180 text-muted" />
+                  </button>
+
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted pt-1">
+                    Of kies uit een album
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {immichAlbums.length === 0 ? (
+                      <div className="col-span-2 text-center py-6 text-xs text-muted">
+                        Geen albums gevonden in Immich.
+                      </div>
+                    ) : (
+                      immichAlbums.map((album) => (
+                        <button
+                          key={album.id}
+                          onClick={() => openAlbum(album)}
+                          className="flex items-center gap-3 p-3 rounded-xl border border-line hover:border-gold hover:bg-cream/30 text-left transition-colors"
+                        >
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-cream flex-shrink-0">
+                            {album.albumThumbnailAssetId ? (
+                              <img
+                                src={`/api/immich/thumbnail/${album.albumThumbnailAssetId}?size=thumbnail`}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <FolderOpen className="w-6 h-6 text-muted m-auto" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-forest truncate">
+                              {album.albumName}
+                            </p>
+                            <p className="text-[11px] text-muted">
+                              {album.assetCount} foto's
+                            </p>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
-            {activeAlbum && (
+            {(activeAlbum || viewMode === 'vacation') && (
               <div className="p-4 border-t border-line flex items-center justify-between bg-cream/30">
                 <span className="text-xs text-muted">
                   {selectedImmich.size} geselecteerd

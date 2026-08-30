@@ -3,9 +3,9 @@
 import React from 'react';
 import { Home,
   Compass,
-  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
+  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare, CloudRain } from 'lucide-react';
 
-export type TabId = 'overzicht' | 'verblijf' | 'culinair' | 'weetjes' | 'dagen' | 'kaarten' | 'wandelen' | 'reisverslag' | 'praktisch';
+export type TabId = 'overzicht' | 'verblijf' | 'culinair' | 'weetjes' | 'dagen' | 'kaarten' | 'wandelen' | 'weer' | 'reisverslag' | 'praktisch';
 
 interface HeaderProps {
   activeTab: TabId;
@@ -21,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
     { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-4 h-4" /> },
     { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-4 h-4" /> },
     { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-4 h-4" /> },
+    { id: 'weer', label: 'Weer', icon: <CloudRain className="w-4 h-4" /> },
     { id: 'reisverslag', label: 'Reisverslag', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'praktisch', label: 'Praktisch', icon: <CheckSquare className="w-4 h-4" /> },
   ];

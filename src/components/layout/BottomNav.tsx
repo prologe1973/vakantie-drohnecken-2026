@@ -3,7 +3,7 @@
 import React from 'react';
 import { Home,
   Compass,
-  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
+  Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare, CloudRain } from 'lucide-react';
 import { TabId } from './Header';
 
 interface BottomNavProps {
@@ -20,6 +20,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
     { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-4 h-4" /> },
     { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-4 h-4" /> },
     { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-4 h-4" /> },
+    { id: 'weer', label: 'Weer', icon: <CloudRain className="w-4 h-4" /> },
     { id: 'reisverslag', label: 'Verslag', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'praktisch', label: 'Praktisch', icon: <CheckSquare className="w-4 h-4" /> },
   ];

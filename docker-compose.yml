@@ -12,3 +12,9 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - DB_PATH=/app/data/journal.db
+    volumes:
+      - vakantie-data:/app/data
+
+volumes:
+  vakantie-data:
