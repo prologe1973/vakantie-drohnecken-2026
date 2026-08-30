@@ -5,6 +5,7 @@ import { Header, TabId } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { OverviewSection } from '@/components/sections/OverviewSection';
+import { AccommodationSection } from '@/components/sections/AccommodationSection';
 import { DaysSection } from '@/components/sections/DaysSection';
 import { MapSection } from '@/components/sections/MapSection';
 import { HikingSection } from '@/components/sections/HikingSection';
@@ -35,6 +36,9 @@ export default function HomePage() {
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 lg:pb-12">
         {activeTab === 'overzicht' && (
           <OverviewSection onNavigate={handleSelectTab} />
+        )}
+        {activeTab === 'verblijf' && (
+          <AccommodationSection onNavigateToMap={handleSelectMapLocation} />
         )}
         {activeTab === 'dagen' && (
           <DaysSection onSelectMapLocation={handleSelectMapLocation} />

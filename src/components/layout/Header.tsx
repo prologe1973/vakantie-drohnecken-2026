@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Home, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
+import { Home, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare } from 'lucide-react';
 
-export type TabId = 'overzicht' | 'dagen' | 'kaarten' | 'wandelen' | 'reisverslag' | 'praktisch';
+export type TabId = 'overzicht' | 'verblijf' | 'dagen' | 'kaarten' | 'wandelen' | 'reisverslag' | 'praktisch';
 
 interface HeaderProps {
   activeTab: TabId;
@@ -13,6 +13,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
   const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'overzicht', label: 'Overzicht', icon: <Home className="w-4 h-4" /> },
+    { id: 'verblijf', label: 'Verblijf', icon: <Building2 className="w-4 h-4" /> },
     { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-4 h-4" /> },
     { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-4 h-4" /> },
     { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-4 h-4" /> },
@@ -42,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs xl:text-sm font-semibold transition-all ${
                   isActive
                     ? 'bg-wine text-white shadow-sm'
                     : 'text-gray-200 hover:text-white hover:bg-white/10'

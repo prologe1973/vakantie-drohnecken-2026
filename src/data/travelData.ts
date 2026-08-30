@@ -21,7 +21,102 @@ export interface LocationData {
   image: string;
 }
 
+export interface AccommodationInfo {
+  name: string;
+  subtitle: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  bookingUrl: string;
+  rating: number;
+  ratingLabel: string;
+  reviewCount: number;
+  checkIn: string;
+  checkOut: string;
+  coordinates: { lat: number; lon: number };
+  image: string;
+  description: string;
+  highlights: string[];
+  facilities: { category: string; items: string[] }[];
+}
+
+export const ACCOMMODATION: AccommodationInfo = {
+  name: 'Falkennest',
+  subtitle: 'Vakantieappartement in Dhronecken',
+  address: 'Zum alten Bahnhof 12',
+  postalCode: '54426',
+  city: 'Dhronecken',
+  country: 'Duitsland',
+  bookingUrl: 'https://www.booking.com/hotel/de/falkennest-dhronecken.nl.html',
+  rating: 9.8,
+  ratingLabel: 'Uitzonderlijk',
+  reviewCount: 12,
+  checkIn: '15:00 – 18:00',
+  checkOut: 'Tot 10:00',
+  coordinates: { lat: 49.7258, lon: 6.9822 },
+  image: '/images/falkennest.jpg',
+  description:
+    'Falkennest is een sfeervol en ruim vakantieappartement gelegen aan de rand van het bos in Dhronecken. Met een zonnig privéterras, een prachtig verzorgde tuin met barbecuefaciliteiten en moderne voorzieningen is dit de ideale rustieke uitvalsbasis voor onze vakantie in de Hunsrück en Moezelregio.',
+  highlights: [
+    '⭐ Beoordeling 9.8 / 10 op Booking.com',
+    '🌳 Rustige ligging met terras en uitzicht op de tuin',
+    '📶 Gratis snelle WiFi in het hele verblijf',
+    '🅿️ Gratis privéparkeergelegenheid op eigen terrein',
+    '🥾 Directe toegang tot wandelroutes (Hölzbachklamm & Traumschleifen)'
+  ],
+  facilities: [
+    {
+      category: 'Woon- & Slaapcomfort',
+      items: [
+        'Ruime woonkamer met comfortabele zithoek',
+        'Flatscreen-tv met satellietzenders',
+        'Geluiddichte, allergievrije en rookvrije ruimtes',
+        'Verwarming & fris bergklimaat'
+      ]
+    },
+    {
+      category: 'Keuken & Eethoek',
+      items: [
+        'Volledig uitgeruste keuken met eettafel',
+        'Koffiezetapparaat & waterkoker',
+        'Koelkast, fornuis, oven & vaatwasser',
+        'Keukengerei, servies & glaswerk'
+      ]
+    },
+    {
+      category: 'Badkamer',
+      items: [
+        'Moderne badkamer met inloopdouche',
+        'Haardroger & handdoeken inbegrepen',
+        'Eigen toilet en wastafel'
+      ]
+    },
+    {
+      category: 'Buiten & Tuin',
+      items: [
+        'Privéterras met comfortabel tuinmeubilair & parasol',
+        'Verzorgde groene tuin met ligstoelen',
+        'Barbecuefaciliteiten (BBQ)',
+        'Mooi uitzicht op het heuvellandschap'
+      ]
+    }
+  ]
+};
+
 export const LOCATIONS: Record<string, LocationData> = {
+  Falkennest: {
+    title: 'Falkennest — Ons Vakantieverblijf',
+    desc: 'Zum alten Bahnhof 12, 54426 Dhronecken',
+    center: [49.7258, 6.9822],
+    zoom: 16,
+    poi: { name: 'Falkennest (Vakantieverblijf)', lat: 49.7258, lon: 6.9822 },
+    parks: [
+      { name: 'Privéparkeerplaats Falkennest', lat: 49.7258, lon: 6.9822, note: 'Gratis parkeren bij de accommodatie' },
+      { name: 'Wanderparkplatz Hölzbachklamm', lat: 49.7249, lon: 6.9825, note: 'Op 100m loopafstand' }
+    ],
+    image: '/images/falkennest.jpg'
+  },
   Dhronecken: {
     title: 'Burg Dhronecken & Hölzbachklamm',
     desc: '13e-eeuwse burchtruïne + mystieke kloofwandeling',
