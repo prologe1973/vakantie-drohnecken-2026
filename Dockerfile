@@ -1,15 +1,47 @@
-# Vakantie Rijnland-Pfalts 2026 — statische webapp
-# Serveer via nginx in een Alpine-container.
-FROM nginx:1.27-alpine
+# Stage 1: Base image with dependencies
+FROM node:20-alpine AS base
 
-# Kopieer de app-bestanden naar de nginx-webroot
-COPY index.html /usr/share/nginx/html/index.html
-COPY img /usr/share/nginx/html/img
+# Install libc6-compat for alpine compatibility if needed
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-# Basis nginx-config: cache voor afbeeldingen, gzip aan
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Stage 2: Install all dependencies
+FROM base AS deps
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-EXPOSE 80
+# Stage 3: Build the application
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1
+# Next.js telemetry uitschakelen tijdens build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+RUN npm run build
+
+# Stage 4: Production runner image (minimalist standalone runtime)
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Beveiliging: non-root user aanmaken
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Kopieer alleen de benodigde standalone artifacts en public assets
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

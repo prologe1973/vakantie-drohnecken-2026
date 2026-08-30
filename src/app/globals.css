@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --forest: #17331f;
+    --forest2: #1f452a;
+    --wine: #7a2431;
+    --gold: #c9a24b;
+    --cream: #f7f2e7;
+    --ink: #24312a;
+    --muted: #67756c;
+    --line: #e6dfce;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--cream);
+    color: var(--ink);
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: var(--font-cormorant), serif;
+  }
+}
+
+/* Custom scrollbar for horizontal chips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

@@ -1,41 +1,71 @@
-# Vakantie Rijnland-Palts (Dhronecken) 2026 · Reisgids &amp; Reisverslag
+# Vakantie Rijnland-Pfalts (Dhronecken) 2026 · Next.js Webapp
 
-Statische webapp en interactief reisverslag voor de midweek **7 t/m 11 september 2026** in Dhronecken (Hunsrück &amp; Moezel).
+Moderne, modulaire webapplicatie en interactief reisverslag voor de midweek **7 t/m 11 september 2026** in Dhronecken (Hunsrück &amp; Moezel).
 
-Geschikt voor weergave en bediening op **PC-schermen**, **tablets** en **Android-telefoons**.
+Gebouwd met **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, **Leaflet** en **IndexedDB**. Geoptimaliseerd voor zowel desktop als mobiel gebruik tijdens de vakantie.
 
 ---
 
-## ✨ Functionaliteiten
+## ✨ Features
 
 - 📅 **Interactief Dagprogramma:** 4-daags reisschema met tijden, tips, bezienswaardigheden en kosten.
-- 🗺️ **Interactieve Plattegronden & Navigatie:** OpenStreetMap + Leaflet kaarten met aangeduide POI's en parkeerplaatsen inclusief directe Google Maps navigatielinks.
-- 🥾 **Wandelpaspoorten:** Details over Hölzbachklamm, Erbeskopf (816m) en Geierlay-hangbrug met directe links naar Komoot routes.
-- 📖 **Reisverslag &amp; Foto's (Nieuw):**
-  - Maak persoonlijke notities per dag of locatie.
-  - Voeg foto's toe via de camera van je telefoon of vanaf je computer.
-  - Foto's worden automatisch geoptimaliseerd en veilig opgeslagen in de **IndexedDB** van je browser.
-  - Bekijk foto's in een handige **Lightbox** (volledig scherm).
-  - **Backup Exporteren &amp; Importeren:** Download je complete reisverslag met foto's als JSON-bestand om te bewaren of over te zetten naar andere apparaten.
-- 🎒 **Inpaklijst &amp; Afstanden:** Interactieve checklist die je voortgang lokaal bewaart.
-- 📱💻 **Volledig Responsive:** Geoptimaliseerde navigatie en multi-column lay-outs voor mobiel, tablet en desktop.
+- 🗺️ **Plattegronden &amp; Parkeren:** Dynamische Leaflet kaarten met POI's, parkeerplaatsen en directe Google Maps navigatie.
+- 🥾 **Wandelpaspoorten:** Routes naar o.a. Hölzbachklamm, Erbeskopf (816m) en Geierlay-hangbrug met directe Komoot-links.
+- 📖 **Reisverslag &amp; Foto's:**
+  - Persoonlijke verslagen en notities per dag of locatie.
+  - Foto's toevoegen vanaf camera of computer (met automatische beeldcompressie).
+  - Foto's bekijken in een fullscreen Lightbox.
+  - Veilige offline opslag in browser via **IndexedDB**.
+  - **Backup Exporteren &amp; Importeren:** Download of herstel je complete reisverslag als `.json` bestand.
+- 🎒 **Inpaklijst:** Interactieve checklist met persistente opslag in localStorage.
+- 📱💻 **Volledig Responsive:** Mobile-first layout met vaste onderbalk voor telefoons en uitgebreide desktop navigatie met multi-column grids.
 
 ---
 
-## 🚀 Starten met Docker Compose
+## 🚀 Aan de slag
+
+### 1. Lokale Development Server
 
 ```bash
-# Start de container op de achtergrond
-docker compose up -d
+# Dependencies installeren
+npm install
+
+# Start development server
+npm run dev
 ```
 
-Open vervolgens je webbrowser op:
-**[http://localhost:8080](http://localhost:8080)** (of `http://<server-ip>:8080`)
+Open vervolgens in je browser:
+👉 **[http://localhost:3000](http://localhost:3000)**
 
-### Container beheren
+---
+
+### 2. Productie bouwen
 
 ```bash
-# Bekijk logs
+# Bouw de productiebundel
+npm run build
+
+# Start de productieserver
+npm start
+```
+
+---
+
+### 3. Docker Deployment (Multi-Stage Build)
+
+De applicatie bevat een geoptimaliseerde multi-stage `Dockerfile` met standalone Node.js runtime en `docker-compose.yml`.
+
+```bash
+# Bouw en start de container op de achtergrond
+docker compose up --build -d
+```
+
+De website is bereikbaar op **[http://localhost:3000](http://localhost:3000)** (of `http://<server-ip>:3000`).
+
+#### Container beheren:
+
+```bash
+# Logs bekijken
 docker compose logs -f
 
 # Herstarten
@@ -47,14 +77,25 @@ docker compose down
 
 ---
 
-## 📁 Bestandsstructuur
+## 📁 Projectstructuur
 
 ```
 .
-├── index.html          # Complete webapp (HTML5, CSS3, JS, IndexedDB & data)
-├── img/                # Sfeer- en achtergrondfoto's
-├── nginx.conf          # Nginx webserverconfiguratie (gzip & cache headers)
-├── docker-compose.yml  # Docker Compose opzet (nginx:alpine, port 8080)
-├── Dockerfile          # Standalone Dockerfile definitie
-└── README.md           # Deze documentatie
+├── public/
+│   └── images/             # Geoptimaliseerde afbeeldingen en fotomateriaal
+├── src/
+│   ├── app/
+│   │   ├── globals.css     # Tailwind CSS en custom stijlen
+│   │   ├── layout.tsx      # Root layout met Cormorant & Inter fonts
+│   │   └── page.tsx        # Hoofdpagina en tab state router
+│   ├── components/
+│   │   ├── layout/         # Header, BottomNav, Footer
+│   │   └── sections/       # Overview, Days, Map, Hiking, Journal, Practical
+│   ├── data/               # travelData.ts, packingList.ts
+│   └── lib/                # journalDb.ts (IndexedDB), imageCompression.ts
+├── Dockerfile              # Multi-stage container build (Node.js Alpine)
+├── docker-compose.yml      # Docker Compose configuratie (port 3000)
+├── next.config.mjs         # Next.js standalone configuratie
+├── tailwind.config.ts      # Tailwind configuratie
+└── tsconfig.json           # TypeScript configuratie
 ```
