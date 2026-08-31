@@ -40,5 +40,5 @@ desktop.ini
 *.swo
 *~
 
-# Lokale SQLite-database (niet in git)
-data/
+# Lokale SQLite-database (niet in git) — alleen de ROOT /data map
+/data/
