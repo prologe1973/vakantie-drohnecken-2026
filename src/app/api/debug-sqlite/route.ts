@@ -1,28 +1,27 @@
 import { NextResponse } from 'next/server';
 
-// Tijdelijke debug-route: test of better-sqlite3 correct laadt in deze container
+// Debug: laadt better-sqlite3 dynamisch BINNEN de handler zodat een fout opgevangen wordt
 export async function GET() {
-  const result: Record<string, unknown> = {};
+  const result: Record<string, unknown> = { platform: process.platform, arch: process.arch };
   try {
-    // Test of de module laadt (zonder database te openen)
-    const Database = require('better-sqlite3');
+    const { default: Database } = await import('better-sqlite3');
     result.moduleLoaded = true;
-    result.moduleType = typeof Database;
+    result.databaseType = typeof Database;
     try {
       const db = new Database(':memory:');
       db.exec('CREATE TABLE t(a)');
       db.prepare('INSERT INTO t VALUES(1)').run();
-      const row = db.prepare('SELECT a FROM t').get();
       result.dbWorks = true;
-      result.row = row;
+      result.row = db.prepare('SELECT a FROM t').get();
       db.close();
     } catch (e: any) {
       result.dbError = e?.message;
+      result.dbStack = e?.stack?.split('\n').slice(0, 4).join('\n');
     }
   } catch (e: any) {
     result.moduleLoaded = false;
     result.loadError = e?.message;
-    result.stack = e?.stack;
+    result.loadStack = e?.stack?.split('\n').slice(0, 8).join('\n');
   }
   return NextResponse.json(result);
 }
