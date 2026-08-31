@@ -46,7 +46,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Databasepad instellen
-ENV DB_PATH=/app/data/journal.db
+ENV DB_PATH=/app/data/journal.json
 
 USER nextjs
 

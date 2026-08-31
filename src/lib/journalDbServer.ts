@@ -1,11 +1,11 @@
-import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 
-// Persistente SQLite-database voor het reisverslag.
-// Pad komt uit DB_PATH (in Docker een volume), lokaal in ./data/journal.db
-const DB_PATH =
-  process.env.DB_PATH || path.join(process.cwd(), 'data', 'journal.db');
+// Eenvoudige, betrouwbare bestandsgebaseerde opslag voor het reisverslag.
+// Schrijft een JSON-bestand naar het persistente volume (of lokaal ./data).
+// Geen native module nodig — werkt gegarandeerd in elke container.
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const DB_FILE = process.env.DB_PATH || path.join(DATA_DIR, 'journal.json');
 
 export interface JournalEntry {
   id: string;
@@ -18,97 +18,46 @@ export interface JournalEntry {
   updatedAt: string;
 }
 
-let db: Database.Database | null = null;
-
-function getDb(): Database.Database {
-  if (db) return db;
-  // Zorg dat de directory bestaat
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  db = new Database(DB_PATH);
-  db.pragma('journal_mode = WAL');
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS journal_entries (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      day TEXT NOT NULL,
-      date TEXT NOT NULL,
-      location TEXT,
-      text TEXT,
-      photos TEXT NOT NULL DEFAULT '[]',
-      updatedAt TEXT NOT NULL
-    );
-  `);
-  return db;
+function ensureDir() {
+  fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 }
 
-function rowToEntry(row: any): JournalEntry {
-  return {
-    id: row.id,
-    title: row.title,
-    day: row.day,
-    date: row.date,
-    location: row.location || undefined,
-    text: row.text || undefined,
-    photos: JSON.parse(row.photos || '[]'),
-    updatedAt: row.updatedAt,
-  };
+function readAll(): JournalEntry[] {
+  try {
+    if (!fs.existsSync(DB_FILE)) return [];
+    const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAll(entries: JournalEntry[]) {
+  ensureDir();
+  fs.writeFileSync(DB_FILE, JSON.stringify(entries, null, 2), 'utf-8');
 }
 
 export async function getJournalEntries(): Promise<JournalEntry[]> {
-  const d = getDb();
-  const rows = d.prepare('SELECT * FROM journal_entries').all() as any[];
-  const entries = rows.map(rowToEntry);
+  const entries = readAll();
   entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   return entries;
 }
 
 export async function saveJournalEntry(entry: JournalEntry): Promise<JournalEntry> {
-  const d = getDb();
-  const row = {
-    id: entry.id,
-    title: entry.title,
-    day: entry.day,
-    date: entry.date,
-    location: entry.location || null,
-    text: entry.text || null,
-    photos: JSON.stringify(entry.photos || []),
-    updatedAt: entry.updatedAt,
-  };
-  d.prepare(`
-    INSERT INTO journal_entries (id, title, day, date, location, text, photos, updatedAt)
-    VALUES (@id, @title, @day, @date, @location, @text, @photos, @updatedAt)
-    ON CONFLICT(id) DO UPDATE SET
-      title=@title, day=@day, date=@date, location=@location, text=@text,
-      photos=@photos, updatedAt=@updatedAt
-  `).run(row);
+  const entries = readAll();
+  const idx = entries.findIndex((e) => e.id === entry.id);
+  if (idx >= 0) entries[idx] = entry;
+  else entries.push(entry);
+  writeAll(entries);
   return entry;
 }
 
 export async function deleteJournalEntry(id: string): Promise<void> {
-  const d = getDb();
-  d.prepare('DELETE FROM journal_entries WHERE id = ?').run(id);
+  const entries = readAll().filter((e) => e.id !== id);
+  writeAll(entries);
 }
 
-// Gebruikt door de API om een volledige bestandsset (migratie) in te laden
 export async function replaceAllEntries(entries: JournalEntry[]): Promise<void> {
-  const d = getDb();
-  const tx = d.transaction((items: JournalEntry[]) => {
-    d.prepare('DELETE FROM journal_entries').run();
-    for (const e of items) {
-      d.prepare(`
-        INSERT INTO journal_entries (id, title, day, date, location, text, photos, updatedAt)
-        VALUES (@id, @title, @day, @date, @location, @text, @photos, @updatedAt)
-      `).run({
-        id: e.id,
-        title: e.title,
-        day: e.day,
-        date: e.date,
-        location: e.location || null,
-        text: e.text || null,
-        photos: JSON.stringify(e.photos || []),
-        updatedAt: e.updatedAt,
-      });
-    }
-  });
-  tx(entries);
+  writeAll(entries);
 }
