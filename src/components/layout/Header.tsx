@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Home, Compass, Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare, CloudRain, Menu, X, ChevronRight } from 'lucide-react';
+import { Home, Compass, Utensils, Building2, Calendar, MapPin, Footprints, BookOpen, CheckSquare, CloudRain, Menu, X, ChevronRight, ShoppingCart } from 'lucide-react';
 
-export type TabId = 'overzicht' | 'verblijf' | 'culinair' | 'weetjes' | 'dagen' | 'kaarten' | 'wandelen' | 'weer' | 'reisverslag' | 'praktisch';
+export type TabId = 'overzicht' | 'verblijf' | 'culinair' | 'weetjes' | 'dagen' | 'kaarten' | 'wandelen' | 'weer' | 'reisverslag' | 'winkels' | 'praktisch';
 
 interface HeaderProps {
   activeTab: TabId;
@@ -18,6 +18,7 @@ const ALL_ITEMS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'weetjes', label: 'Weetjes & Info', icon: <Compass className="w-5 h-5" /> },
   { id: 'dagen', label: 'Dagen', icon: <Calendar className="w-5 h-5" /> },
   { id: 'kaarten', label: 'Kaarten', icon: <MapPin className="w-5 h-5" /> },
+  { id: 'winkels', label: 'Boodschappen', icon: <ShoppingCart className="w-5 h-5" /> },
   { id: 'wandelen', label: 'Wandelen', icon: <Footprints className="w-5 h-5" /> },
   { id: 'weer', label: 'Weer', icon: <CloudRain className="w-5 h-5" /> },
   { id: 'reisverslag', label: 'Reisverslag', icon: <BookOpen className="w-5 h-5" /> },

@@ -13,6 +13,7 @@ import { JournalSection } from '@/components/sections/JournalSection';
 import { PracticalSection } from '@/components/sections/PracticalSection';
 import { CulinarySection } from '@/components/sections/CulinarySection';
 import { AttractionsInfoSection } from '@/components/sections/AttractionsInfoSection';
+import { ShoppingSection } from '@/components/sections/ShoppingSection';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabId>('overzicht');
@@ -56,6 +57,9 @@ export default function HomePage() {
         )}
         {activeTab === 'wandelen' && (
           <HikingSection />
+        )}
+        {activeTab === 'winkels' && (
+          <ShoppingSection />
         )}
         {activeTab === 'weer' && (
           <WeatherSection />
