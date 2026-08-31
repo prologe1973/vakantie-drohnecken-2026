@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { TabId } from '../layout/Header';
 import { ACCOMMODATION } from '@/data/travelData';
-import { ExternalLink, Star, MapPin, Camera } from 'lucide-react';
+import { ExternalLink, Star, MapPin, Camera, Smartphone, Apple, Play } from 'lucide-react';
 import { CountdownBanner } from './CountdownBanner';
 
 interface OverviewSectionProps {
@@ -205,8 +205,47 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ onNavigate }) 
         <p className="text-sm text-ink leading-relaxed">
           Van de ruige, stille bossen van het Nationaal Park Hunsrück-Hochwald naar de monumentale Romeinse pracht van Trier en de eeuwenoude wijntradities van de Moezel. Alles ligt op korte rijafstand van je vakantieverblijf in <b>Falkennest, Dhronecken</b>.
         </p>
-        <div className="p-3.5 bg-[#eef3ee] border-l-4 border-forest rounded-lg text-xs text-forest">
-          <b>ARGO-app tip:</b> Download de gratis ARGO Augmented Reality app vooraf! Bij <b>Burg Dhronecken</b> projecteer je de complete 13e-eeuwse burcht in 360° over de huidige ruïnes heen.
+        <div className="p-4 md:p-5 bg-[#eef3ee] border-l-4 border-forest rounded-lg space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-forest text-white flex-shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-forest">ARGO-app — augmented reality</p>
+              <p className="text-xs text-ink leading-relaxed mt-0.5">
+                Download de <b>gratis</b> ARGO Augmented Reality app vooraf! Bij <b>Burg Dhronecken</b> projecteer je de complete 13e-eeuwse burcht in 360° over de huidige ruïnes heen. Geschikt voor telefoon én tablet.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 pl-0">
+            <a
+              href="https://apps.apple.com/us/app/argo-augmented-archaeology/id1609264509"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+            >
+              <Apple className="w-4 h-4" />
+              <span className="flex flex-col leading-none text-left">
+                <span className="text-[9px] text-white/70">Download on the</span>
+                <span className="text-sm font-bold">App Store</span>
+              </span>
+            </a>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.ARGOEdutainmentSolutions.ARGO"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#0f9d58] hover:bg-[#0c7d46] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+            >
+              <Play className="w-4 h-4" />
+              <span className="flex flex-col leading-none text-left">
+                <span className="text-[9px] text-white/80">Get it on</span>
+                <span className="text-sm font-bold">Google Play</span>
+              </span>
+            </a>
+          </div>
+          <p className="text-[10px] text-muted">
+            Tip: installeer hem vooraf, dan staat hij klaar bij het kasteel. Zoek in de app naar <b>Burg Dhronecken</b>.
+          </p>
         </div>
       </div>
     </div>
