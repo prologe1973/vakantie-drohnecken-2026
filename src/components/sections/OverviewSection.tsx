@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { TabId } from '../layout/Header';
 import { ACCOMMODATION } from '@/data/travelData';
 import { ExternalLink, Star, MapPin, Camera } from 'lucide-react';
+import { CountdownBanner } from './CountdownBanner';
 
 interface OverviewSectionProps {
   onNavigate: (tab: TabId) => void;
@@ -66,6 +67,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({ onNavigate }) 
           </p>
         </div>
       </div>
+
+      {/* Countdown + vakantie-weer */}
+      <CountdownBanner />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3 md:gap-4">

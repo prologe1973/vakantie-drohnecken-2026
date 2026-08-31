@@ -11,7 +11,7 @@ export async function GET() {
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m` +
       `&hourly=temperature_2m,weather_code,precipitation_probability,precipitation` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset` +
-      `&timezone=Europe%2FBerlin&forecast_days=7`;
+      `&timezone=Europe%2FBerlin&forecast_days=14`;
 
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {

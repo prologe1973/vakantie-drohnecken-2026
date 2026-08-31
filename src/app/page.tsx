@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Header, TabId } from '@/components/layout/Header';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { OverviewSection } from '@/components/sections/OverviewSection';
 import { AccommodationSection } from '@/components/sections/AccommodationSection';
@@ -36,7 +35,7 @@ export default function HomePage() {
       <Header activeTab={activeTab} onSelectTab={handleSelectTab} />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 lg:pb-12">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pt-20 pb-24 lg:pb-12">
         {activeTab === 'overzicht' && (
           <OverviewSection onNavigate={handleSelectTab} />
         )}
@@ -71,9 +70,6 @@ export default function HomePage() {
 
       {/* Footer */}
       <Footer />
-
-      {/* Bottom Nav for Mobile / Tablet */}
-      <BottomNav activeTab={activeTab} onSelectTab={handleSelectTab} />
     </div>
   );
 }
