@@ -10,6 +10,7 @@ export const BASE_LON = 6.9822;
 
 // Marker kleur per type
 const TYPE_COLOR: Record<string, string> = {
+  bakkerij: '#d97706',
   supermarkt: '#1f7a3f',
   discounter: '#2f8f4f',
   warenhuis: '#c22b2b',
@@ -20,6 +21,7 @@ const TYPE_COLOR: Record<string, string> = {
 
 // Categorie-embleem per type (voor de marker)
 const TYPE_EMOJI: Record<string, string> = {
+  bakkerij: '🥐',
   supermarkt: '🛒',
   discounter: '🛒',
   warenhuis: '🛍️',
@@ -44,6 +46,7 @@ export const ShoppingMap: React.FC<ShoppingMapProps> = ({ activeCategories, rese
 
   // Categorie per shop-type
   const categoryOf = (type: string): string => {
+    if (type === 'bakkerij') return 'bakkers';
     if (type === 'supermarkt' || type === 'discounter') return 'boodschappen';
     if (type === 'warenhuis' || type === 'winkelstraat') return 'winkelen';
     if (type === 'speciaalzaak') return 'speciaalzaken';

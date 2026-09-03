@@ -1,7 +1,7 @@
 export interface Shop {
   id: string;
   name: string;
-  type: 'supermarkt' | 'discounter' | 'warenhuis' | 'winkelstraat' | 'speciaalzaak' | 'wijnwinkel';
+  type: 'supermarkt' | 'discounter' | 'warenhuis' | 'winkelstraat' | 'speciaalzaak' | 'wijnwinkel' | 'bakkerij';
   brand?: string;
   area: string; // plaats/gemeente
   address: string;
@@ -13,7 +13,7 @@ export interface Shop {
   lat: number;
   lon: number;
   why?: string;
-  category: string; // boodschappen / winkelen
+  category: string; // boodschappen / winkelen / bakkers
 }
 
 export interface ShoppingGroup {
@@ -27,6 +27,65 @@ export interface ShoppingGroup {
 }
 
 export const SHOPPING_GROUPS: ShoppingGroup[] = [
+  {
+    id: 'bakkers',
+    title: 'Bakkers & Vers Brood',
+    subtitle: 'Verse broodjes (Brötchen) nabij Dhronecken',
+    area: 'Thalfang (3 km / 3–5 min)',
+    intro:
+      'In het dorp Dhronecken zelf is geen bakker gevestigd. Voor vers brood, broodjes en gebak kun je terecht in het direct naastgelegen Thalfang. Op zondagochtend is Thalfanger Backhaus de enige geopende bakker in de buurt!',
+    color: 'from-[#b45309] via-[#d97706] to-[#f59e0b]',
+    shops: [
+      {
+        id: 'thalfanger-backhaus',
+        name: 'Thalfanger Backhaus (Bäckerei Thome)',
+        type: 'bakkerij',
+        brand: 'Bäckerei Thome',
+        area: 'Thalfang',
+        address: 'Bahnhofstraße 9',
+        postalCode: '54424 Thalfang',
+        hours: 'Ma–Vr 06:00–18:00 · Za 06:00–13:00 · Zo 07:30–10:30',
+        distance: '3,8 km',
+        driveTime: '± 4 min',
+        lat: 49.7531393,
+        lon: 6.9985605,
+        why: 'Ambachtelijke bakkerij met zitgelegenheid voor koffie/ontbijt en een ruim assortiment vers brood en gebak. 🥐 Tip: Op zondagochtend geopend (07:30–10:30) voor verse ontbijtbroodjes!',
+        category: 'bakkers',
+      },
+      {
+        id: 'baeckerei-spindler',
+        name: 'Bäckerei Spindler (in de Norma)',
+        type: 'bakkerij',
+        brand: 'Bäckerei Spindler',
+        area: 'Thalfang',
+        address: 'Poststraße 1',
+        postalCode: '54424 Thalfang',
+        hours: 'Ma–Za 07:00–18:00 · Zo gesloten',
+        distance: '3,8 km',
+        driveTime: '± 5 min',
+        lat: 49.7523779,
+        lon: 7.0012946,
+        why: 'Bakkersfiliaal met vers brood, belegde broodjes, snacks en koffie to go.',
+        category: 'bakkers',
+      },
+      {
+        id: 'bakkerij-edeka-diehl',
+        name: 'Bakkerijafdeling EDEKA Diehl',
+        type: 'bakkerij',
+        brand: 'EDEKA Bakshop',
+        area: 'Thalfang',
+        address: 'Bahnhofstraße 3-7',
+        postalCode: '54424 Thalfang',
+        hours: 'Ma–Za 07:00–20:00 · Zo gesloten',
+        distance: '3,8 km',
+        driveTime: '± 5 min',
+        lat: 49.7527543,
+        lon: 6.9990405,
+        why: 'Grote bakshop vooraan in de supermarkt met ambachtelijk brood, broodjes en banket.',
+        category: 'bakkers',
+      },
+    ],
+  },
   {
     id: 'boodschappen',
     title: 'Dagelijkse Boodschappen',
@@ -309,9 +368,14 @@ export const SHOPPING_GROUPS: ShoppingGroup[] = [
 
 export const SHOPPING_TIPS = [
   {
+    icon: '🥐',
+    title: 'Verse broodjes op zondag',
+    text: 'Wil je op zondagochtend verse Duitse broodjes (Brötchen) halen? Dan is Thalfanger Backhaus aan de Bahnhofstraße 9 in Thalfang (07:30–10:30) de enige en beste optie in de directe omgeving.',
+  },
+  {
     icon: '📵',
-    title: 'Zondagssluiting',
-    text: 'In Duitsland zijn supermarkten, discounters en reguliere winkels op zondag wettelijk gesloten (Ladenschlussgesetz). Plan boodschappen en inkopen dus strikt van maandag t/m zaterdag!',
+    title: 'Zondagssluiting (Ladenschlussgesetz)',
+    text: 'In Duitsland zijn supermarkten, discounters en reguliere winkels op zondag wettelijk gesloten. Plan boodschappen en inkopen dus strikt van maandag t/m zaterdag (met uitzondering van bakker Thome op zondagochtend)!',
   },
   {
     icon: '♻️',
@@ -329,8 +393,3 @@ export const SHOPPING_TIPS = [
     text: 'Pinnen is overal de standaard in supermarkten en grote winkels, maar in kleinere dorpswinkeltjes, boetiekjes of wijnkraampjes op het wijnfeest is wat contant geld (Bargeld) raadzaam.',
   },
 ];
-
-export const WARNING = {
-  title: 'Let op: WASGAU Thalfang gesloten',
-  text: 'De grote WASGAU Frischemarkt aan de Charlottenhöhe 1 in Thalfang is op 31 maart 2026 definitief gesloten. Rijd hier dus niet per ongeluk heen.',
-};

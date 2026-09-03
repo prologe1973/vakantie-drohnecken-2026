@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { ShoppingCart, MapPin, Clock, Navigation, Sparkles, Building2, Utensils, Wine, Store, Maximize2 } from 'lucide-react';
+import { ShoppingCart, MapPin, Clock, Navigation, Sparkles, Building2, Utensils, Wine, Store, Maximize2, Croissant } from 'lucide-react';
 import { SHOPPING_GROUPS, SHOPPING_TIPS } from '@/data/shoppingData';
 
 const DynamicLeafletMap = dynamic(
@@ -18,6 +18,7 @@ const DynamicLeafletMap = dynamic(
 );
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
+  bakkerij: <Croissant className="w-4 h-4" />,
   supermarkt: <ShoppingCart className="w-4 h-4" />,
   discounter: <ShoppingCart className="w-4 h-4" />,
   warenhuis: <Building2 className="w-4 h-4" />,
@@ -28,6 +29,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 
 // Filtercategorieën voor de kaart (elke categorie = meerdere shop-types)
 const CATEGORIES: { id: string; label: string; emoji: string; color: string }[] = [
+  { id: 'bakkers', label: 'Bakkers', emoji: '🥐', color: '#d97706' },
   { id: 'boodschappen', label: 'Supermarkten', emoji: '🛒', color: '#1f7a3f' },
   { id: 'winkelen', label: 'Winkelen', emoji: '🛍️', color: '#c22b2b' },
   { id: 'speciaalzaken', label: 'Edelstenen', emoji: '💎', color: '#6b5f8f' },
@@ -127,7 +129,7 @@ export const ShoppingSection: React.FC = () => {
       {SHOPPING_GROUPS.map((group) => (
         <div key={group.id} className="space-y-5">
           {/* Group header */}
-          <div className={`relative overflow-hidden rounded-2xl shadow-card ${group.id === 'boodschappen' ? 'bg-forest2' : group.id === 'trier' ? 'bg-[#5a1a25]' : group.id === 'idar-oberstein' ? 'bg-[#3f3550]' : 'bg-[#6b1f2e]'}`}>
+          <div className={`relative overflow-hidden rounded-2xl shadow-card ${group.id === 'bakkers' ? 'bg-[#92400e]' : group.id === 'boodschappen' ? 'bg-forest2' : group.id === 'trier' ? 'bg-[#5a1a25]' : group.id === 'idar-oberstein' ? 'bg-[#3f3550]' : 'bg-[#6b1f2e]'}`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${group.color} opacity-90`} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/20" />
             <div className="relative z-10 p-5 md:p-6">
